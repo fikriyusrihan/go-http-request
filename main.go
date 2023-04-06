@@ -15,10 +15,11 @@ import (
 
 func main() {
 	for true {
+		// Initialize random number and request data
 		randWaterInt := h8HelperRand.RandomInt(1, 15)
 		randWindInt := h8HelperRand.RandomInt(1, 15)
 
-		requestData := models.StatusRequest{
+		requestData := models.Status{
 			Water: uint8(randWaterInt),
 			Wind:  uint8(randWindInt),
 		}
@@ -28,10 +29,9 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		fmt.Println(string(requestJson))
-
+		// Prepare request to server
 		client := &http.Client{}
-		url := "http://localhost:8080"
+		url := "https://jsonplaceholder.typicode.com/posts"
 
 		req, err := http.NewRequest(
 			http.MethodPost,
@@ -44,6 +44,7 @@ func main() {
 
 		req.Header.Set("Content-Type", "application/json")
 
+		// Send request to server
 		res, err := client.Do(req)
 		if err != nil {
 			log.Fatalln(err)
@@ -54,14 +55,37 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		responseData := models.StatusResponse{}
+		// Parse response from server
+		var responseData models.Status
 		err = json.Unmarshal(body, &responseData)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		fmt.Printf("status water: %s\n", responseData.WaterStatus)
-		fmt.Printf("status wind: %s\n\n", responseData.WindStatus)
+		responseJson, err := json.MarshalIndent(responseData, "", " ")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		// Print response in json format
+		fmt.Println(string(responseJson))
+
+		// Determine status
+		if requestData.Water <= 5 {
+			fmt.Printf("status water: aman\n")
+		} else if requestData.Water >= 6 && requestData.Water <= 8 {
+			fmt.Printf("status water: siaga\n")
+		} else {
+			fmt.Printf("status water: bahaya\n")
+		}
+
+		if requestData.Wind <= 6 {
+			fmt.Printf("status wind: aman\n")
+		} else if requestData.Wind >= 7 && requestData.Wind <= 15 {
+			fmt.Printf("status wind: siaga\n")
+		} else {
+			fmt.Printf("status wind: bahaya\n")
+		}
 
 		_ = res.Body.Close()
 		time.Sleep(15 * time.Second)
